@@ -3,37 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYSTEM_ACCESS: 1/7</title>
+    <title>Protocol 0107</title>
     <style>
-        body {
-            background-color: #000;
-            color: #0f0; /* 經典駭客綠 */
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; line-height: 1.5; }
+        .cmd { margin-bottom: 10px; }
+        .highlight { color: #fff; text-shadow: 0 0 5px #0f0; }
+        #timer { font-size: 1.5em; margin-top: 20px; font-weight: bold; }
+        .cursor { animation: blink 1s infinite; border-left: 8px solid #0f0; margin-left: 5px; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div id="console"></div>
+    <div id="timer"></div>
+    <span class="cursor"></span>
+
+    <script>
+        const consoleEl = document.getElementById('console');
+        const timerEl = document.getElementById('timer');
+        const target = new Date("2026-01-07T00:00:00").getTime();
+
+        const logs = [
+            "> Initializing Capricorn_Protocol...",
+            "> Loading user data: [Target_0107]",
+            "> Analyzing personality: [Smart, Calm, Ambitious]",
+            "> System ready. Starting countdown..."
+        ];
+
+        // 逐行顯示日誌
+        let i = 0;
+        function showLogs() {
+            if (i < logs.length) {
+                const p = document.createElement('div');
+                p.className = 'cmd';
+                p.textContent = logs[i++];
+                consoleEl.appendChild(p);
+                setTimeout(showLogs, 600);
+            } else {
+                updateTimer();
+            }
         }
 
-        #terminal {
-            width: 100%;
-            max-width: 600px;
-            background: rgba(0, 20, 0, 0.9);
-            padding: 20px;
-            border: 1px solid #0f0;
-            box-shadow: 0 0 10px #0f0;
-            min-height: 300px;
-            position: relative;
+        // 更新倒數計時
+        function updateTimer() {
+            const now = new Date().getTime();
+            const diff = target - now;
+
+            if (diff <= 0) {
+                timerEl.innerHTML = "<span class='highlight'>🎉 ACCESS GRANTED: 生日快樂！</span><br>新的一歲，Bug 全消，好運爆表！";
+                return;
+            }
+
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+
+            timerEl.innerHTML = `距離解鎖慶祝模式：<br><span class="highlight">${d}天 ${h}時 ${m}分 ${s}秒</span>`;
+            setTimeout(updateTimer, 1000);
         }
 
-        .cursor {
-            display: inline-block;
-            width: 10px;
-            height: 18px;
-            background-color: #0f0;
+        showLogs();
+    </script>
+</body>
+</html>
+
             animation: blink 1s infinite;
             vertical-align: middle;
         }
