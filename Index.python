@@ -1,54 +1,170 @@
-import time
-from datetime import datetime
-import sys
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM_ACCESS: 1/7</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0; /* 經典駭客綠 */
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-def typewriter_effect(text, speed=0.05):
-    """模擬打字機效果"""
-    for char in text:
-        sys.stdout.write(char)
-        sys.stdout.flush()
-        time.sleep(speed)
-    print()
+        #terminal {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(0, 20, 0, 0.9);
+            padding: 20px;
+            border: 1px solid #0f0;
+            box-shadow: 0 0 10px #0f0;
+            min-height: 300px;
+            position: relative;
+        }
 
-def birthday_countdown():
-    # 設定對方的生日 (年份設為 2026)
-    target_date = datetime(2026, 1, 7, 0, 0, 0)
-    
-    print("\n" + "="*40)
-    print("   SYSTEM ACCESS: CAPRICORN_PROTOCOL")
-    print("="*40 + "\n")
-    time.sleep(1)
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background-color: #0f0;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
 
-    typewriter_effect("正在分析目標對象資料...", 0.05)
-    time.sleep(0.5)
-    print(">> 星座：魔羯座 (Capricorn)")
-    time.sleep(0.5)
-    print(">> 特質：高冷、聰明、未來的菁英")
-    time.sleep(0.5)
-    typewriter_effect(">> 偵測到重大事件：BIRTHDAY", 0.1)
-    print("\n")
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
 
-    while True:
-        now = datetime.now()
-        remaining = target_date - now
+        .hidden {
+            display: none;
+        }
+
+        h1 {
+            border-bottom: 1px dashed #0f0;
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        #countdown {
+            font-size: 1.5rem;
+            margin-top: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        .log-text {
+            color: #0a0;
+            font-size: 0.9rem;
+            margin: 5px 0;
+        }
         
-        if remaining.total_seconds() <= 0:
-            print("\n" + "*"*50)
-            print("   🎉 TARGET REACHED: HAPPY BIRTHDAY! 🎉")
-            print("   祝你 1/7 生日快樂，新的一歲稱霸全場！")
-            print("*"*50)
-            break
-        
-        days = remaining.days
-        hours, remainder = divmod(remaining.seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        
-        # 顯示倒數計時，\r 讓它在同一行更新
-        countdown_text = f"距離慶祝時刻還剩： {days}天 {hours:02d}時 {minutes:02d}分 {seconds:02d}秒"
-        sys.stdout.write(f"\r{countdown_text}")
-        sys.stdout.flush()
-        time.sleep(1)
+        .highlight {
+            color: #fff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
-if __name__ == "__main__":
-    # 執行程式
-    birthday_countdown()
+    <div id="terminal">
+        <h1>> CAPRICORN_PROTOCOL_V1.0</h1>
+        <div id="logs"></div>
+        <div id="main-content" class="hidden">
+            <p>> 目標對象：<span class="highlight">1/7 壽星</span></p>
+            <p>> 當前狀態：等待慶祝時刻...</p>
+            <div id="countdown">計算中...</div>
+        </div>
+        <p><span id="typing-area"></span><span class="cursor"></span></p>
+    </div>
+
+    <script>
+        // --- 設定區 ---
+        // 設定他的生日：2026年1月7日 00:00:00
+        const targetDate = new Date("2026-01-07T00:00:00").getTime();
+        
+        const logsContainer = document.getElementById('logs');
+        const typingArea = document.getElementById('typing-area');
+        const mainContent = document.getElementById('main-content');
+        const countdownElement = document.getElementById('countdown');
+
+        // 模擬開機載入的文字
+        const bootText = [
+            "正在連接伺服器...",
+            "驗證使用者身分... 通過",
+            "正在讀取星座資料庫 [CAPRICORN]...",
+            "分析目標特質: 聰明、冷靜、優秀...",
+            "偵測到重大時間節點: 2026/01/07",
+            "系統準備就緒。"
+        ];
+
+        let lineIndex = 0;
+
+        // 打字機效果函數
+        function typeLog() {
+            if (lineIndex < bootText.length) {
+                let p = document.createElement('p');
+                p.className = 'log-text';
+                p.textContent = "> " + bootText[lineIndex];
+                logsContainer.appendChild(p);
+                lineIndex++;
+                setTimeout(typeLog, 800); // 每行出現的速度
+            } else {
+                // 文字跑完，顯示倒數計時器
+                typingArea.style.display = 'none';
+                mainContent.classList.remove('hidden');
+                startCountdown();
+            }
+        }
+
+        // 開始倒數
+        function startCountdown() {
+            const timer = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    clearInterval(timer);
+                    showBirthdayMessage();
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                countdownElement.innerHTML = 
+                    `距離解鎖還有: <br><br>` +
+                    `${days}天 ${hours}時 ${minutes}分 ${seconds}秒`;
+            }, 1000);
+        }
+
+        // 時間到時顯示的畫面
+        function showBirthdayMessage() {
+            countdownElement.innerHTML = 
+                `<span style="color:white; font-size: 1.8rem;">🎉 ACCESS GRANTED 🎉</span><br><br>` +
+                `生日快樂！<br>` +
+                `祝你在新的一歲<br>程式無 Bug，考試全都會！`;
+            
+            // 簡單的慶祝特效文字
+            let p = document.createElement('p');
+            p.className = 'log-text';
+            p.textContent = "> 已發送虛擬蛋糕... 🎂";
+            logsContainer.appendChild(p);
+        }
+
+        // 啟動程式
+        window.onload = function() {
+            setTimeout(typeLog, 500);
+        };
+    </script>
+</body>
+</html>
