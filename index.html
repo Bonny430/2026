@@ -2,337 +2,225 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocol 0107</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 手機適配關鍵 -->
+    <title>System Access: 0107</title>
     <style>
-        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; line-height: 1.5; }
-        .cmd { margin-bottom: 10px; }
-        .highlight { color: #fff; text-shadow: 0 0 5px #0f0; }
-        #timer { font-size: 1.5em; margin-top: 20px; font-weight: bold; }
-        .cursor { animation: blink 1s infinite; border-left: 8px solid #0f0; margin-left: 5px; }
+        /* --- 基礎設定 --- */
+        :root {
+            --green: #0f0;
+            --dark-green: #003300;
+            --bg: #000;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--green);
+            font-family: 'Courier New', monospace; /* 駭客字體 */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            /* 螢幕掃描線效果 */
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+        }
+
+        /* --- 終端機視窗 --- */
+        #terminal {
+            width: 90%; /* 手機寬度適配 */
+            max-width: 600px;
+            background: rgba(0, 10, 0, 0.9);
+            border: 1px solid var(--green);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+            padding: 20px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        /* --- 頂部狀態列 --- */
+        .status-bar {
+            border-bottom: 1px dashed var(--green);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* --- 日誌區域 --- */
+        #console-log {
+            font-size: 0.9rem;
+            height: 120px; /* 固定高度防止跳動 */
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .log-line {
+            margin: 3px 0;
+            word-wrap: break-word; /* 防止手機上文字太長撐開 */
+        }
+
+        /* --- 倒數計時區 --- */
+        #timer-box {
+            display: none; /* 一開始隱藏 */
+            border: 1px solid var(--green);
+            padding: 20px;
+            text-align: center;
+            animation: popIn 0.5s ease forwards;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .timer-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--green);
+            margin-top: 10px;
+            line-height: 1.2;
+        }
+
+        /* 手機上字體稍微縮小 */
+        @media (max-width: 400px) {
+            .timer-display { font-size: 1.4rem; }
+            #terminal { padding: 15px; width: 95%; }
+        }
+
+        /* --- 游標動畫 --- */
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--green);
+            margin-left: 5px;
+            animation: blink 1s infinite;
+        }
+
         @keyframes blink { 50% { opacity: 0; } }
+
+        .highlight { color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="console"></div>
-    <div id="timer"></div>
-    <span class="cursor"></span>
+
+    <div id="terminal">
+        <div class="status-bar">
+            <span>USER: AUTHORIZED</span>
+            <span>SECURE: TRUE</span>
+        </div>
+
+        <div id="console-log"></div>
+
+        <div id="timer-box">
+            <div style="font-size: 0.8rem; opacity: 0.7;">> 目標日期鎖定 <span id="target-date-display"></span></div>
+            <div id="countdown" class="timer-display">計算中...</div>
+        </div>
+    </div>
 
     <script>
-        const consoleEl = document.getElementById('console');
-        const timerEl = document.getElementById('timer');
-        const target = new Date("2026-01-07T00:00:00").getTime();
+        // ====================================================
+        // 👇👇👇 請在這裡修改生日日期 👇👇👇
+        // 格式：YYYY-MM-DDT00:00:00 (T代表時間分隔)
+        // 例如：想改成 2026年1月7日，就填 "2026-01-07T00:00:00"
+        
+        const config = {
+            targetDate: "2026-01-07T00:00:00", 
+            userName: "使用者" // 這裡可以改成你想稱呼他的名字
+        };
+        
+        // ====================================================
 
+        const logContainer = document.getElementById('console-log');
+        const timerBox = document.getElementById('timer-box');
+        const countdownEl = document.getElementById('countdown');
+        const targetDateDisplay = document.getElementById('target-date-display');
+
+        // 顯示目標日期在畫面上
+        const dateObj = new Date(config.targetDate);
+        targetDateDisplay.textContent = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+
+        // 開機日誌文字
         const logs = [
-            "> Initializing Capricorn_Protocol...",
-            "> Loading user data: [Target_0107]",
-            "> Analyzing personality: [Smart, Calm, Ambitious]",
-            "> System ready. Starting countdown..."
+            "正在初始化系統...",
+            `識別身分: [${config.userName}]`,
+            "權限確認: 已授權 (Authorized)",
+            "正在掃描時間軸...",
+            "鎖定關鍵事件: 生日慶典",
+            "啟動倒數計時模組..."
         ];
 
-        // 逐行顯示日誌
-        let i = 0;
-        function showLogs() {
-            if (i < logs.length) {
-                const p = document.createElement('div');
-                p.className = 'cmd';
-                p.textContent = logs[i++];
-                consoleEl.appendChild(p);
-                setTimeout(showLogs, 600);
+        let logIndex = 0;
+
+        // 1. 執行開機動畫
+        function runLogs() {
+            if (logIndex < logs.length) {
+                const div = document.createElement('div');
+                div.className = 'log-line';
+                div.innerHTML = `> ${logs[logIndex]}`;
+                logContainer.appendChild(div);
+                logIndex++;
+                // 自動捲動到底部
+                logContainer.scrollTop = logContainer.scrollHeight;
+                setTimeout(runLogs, 600); // 調整文字出現速度
             } else {
-                updateTimer();
-            }
-        }
-
-        // 更新倒數計時
-        function updateTimer() {
-            const now = new Date().getTime();
-            const diff = target - now;
-
-            if (diff <= 0) {
-                timerEl.innerHTML = "<span class='highlight'>🎉 ACCESS GRANTED: 生日快樂！</span><br>新的一歲，Bug 全消，好運爆表！";
-                return;
-            }
-
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-
-            timerEl.innerHTML = `距離解鎖慶祝模式：<br><span class="highlight">${d}天 ${h}時 ${m}分 ${s}秒</span>`;
-            setTimeout(updateTimer, 1000);
-        }
-
-        showLogs();
-    </script>
-</body>
-</html>
-
-            animation: blink 1s infinite;
-            vertical-align: middle;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        h1 {
-            border-bottom: 1px dashed #0f0;
-            padding-bottom: 10px;
-            font-size: 1.2rem;
-        }
-
-        #countdown {
-            font-size: 1.5rem;
-            margin-top: 20px;
-            font-weight: bold;
-            text-shadow: 0 0 5px #0f0;
-        }
-
-        .log-text {
-            color: #0a0;
-            font-size: 0.9rem;
-            margin: 5px 0;
-        }
-        
-        .highlight {
-            color: #fff;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="terminal">
-        <h1>> CAPRICORN_PROTOCOL_V1.0</h1>
-        <div id="logs"></div>
-        <div id="main-content" class="hidden">
-            <p>> 目標對象：<span class="highlight">1/7 壽星</span></p>
-            <p>> 當前狀態：等待慶祝時刻...</p>
-            <div id="countdown">計算中...</div>
-        </div>
-        <p><span id="typing-area"></span><span class="cursor"></span></p>
-    </div>
-
-    <script>
-        // --- 設定區 ---
-        // 設定他的生日：2026年1月7日 00:00:00
-        const targetDate = new Date("2026-01-07T00:00:00").getTime();
-        
-        const logsContainer = document.getElementById('logs');
-        const typingArea = document.getElementById('typing-area');
-        const mainContent = document.getElementById('main-content');
-        const countdownElement = document.getElementById('countdown');
-
-        // 模擬開機載入的文字
-        const bootText = [
-            "正在連接伺服器...",
-            "驗證使用者身分... 通過",
-            "正在讀取星座資料庫 [CAPRICORN]...",
-            "分析目標特質: 聰明、冷靜、優秀...",
-            "偵測到重大時間節點: 2026/01/07",
-            "系統準備就緒。"
-        ];
-
-        let lineIndex = 0;
-
-        // 打字機效果函數
-        function typeLog() {
-            if (lineIndex < bootText.length) {
-                let p = document.createElement('p');
-                p.className = 'log-text';
-                p.textContent = "> " + bootText[lineIndex];
-                logsContainer.appendChild(p);
-                lineIndex++;
-                setTimeout(typeLog, 800); // 每行出現的速度
-            } else {
-                // 文字跑完，顯示倒數計時器
-                typingArea.style.display = 'none';
-                mainContent.classList.remove('hidden');
+                // 日誌跑完，顯示倒數
+                timerBox.style.display = 'block';
                 startCountdown();
             }
         }
 
-        // 開始倒數
+        // 2. 倒數計時邏輯
         function startCountdown() {
-            const timer = setInterval(function() {
-                const now = new Date().getTime();
-                const distance = targetDate - now;
+            const targetTime = new Date(config.targetDate).getTime();
 
-                if (distance < 0) {
+            const timer = setInterval(() => {
+                const now = new Date().getTime();
+                const diff = targetTime - now;
+
+                if (diff <= 0) {
                     clearInterval(timer);
-                    showBirthdayMessage();
+                    showBirthdaySuccess();
                     return;
                 }
 
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-                countdownElement.innerHTML = 
-                    `距離解鎖還有: <br><br>` +
-                    `${days}天 ${hours}時 ${minutes}分 ${seconds}秒`;
+                // 手機版分行顯示比較好看
+                countdownEl.innerHTML = 
+                    `${d}天 ${h}時 <br>` +
+                    `${m}分 ${s}秒`;
             }, 1000);
         }
 
-        // 時間到時顯示的畫面
-        function showBirthdayMessage() {
-            countdownElement.innerHTML = 
-                `<span style="color:white; font-size: 1.8rem;">🎉 ACCESS GRANTED 🎉</span><br><br>` +
-                `生日快樂！<br>` +
-                `祝你在新的一歲<br>程式無 Bug，考試全都會！`;
+        // 3. 時間到之後的畫面
+        function showBirthdaySuccess() {
+            countdownEl.innerHTML = 
+                `<span style="color:white;">🎉 ACCESS GRANTED 🎉</span><br>` +
+                `<span style="font-size:1rem; margin-top:10px; display:block;">生日快樂！<br>祝萬事順利，程式無 Bug！</span>`;
             
-            // 簡單的慶祝特效文字
-            let p = document.createElement('p');
-            p.className = 'log-text';
-            p.textContent = "> 已發送虛擬蛋糕... 🎂";
-            logsContainer.appendChild(p);
+            // 追加一行日誌
+            const div = document.createElement('div');
+            div.className = 'log-line highlight';
+            div.textContent = "> 系統狀態: 慶祝模式已開啟 🎂";
+            logContainer.appendChild(div);
         }
 
         // 啟動程式
-        window.onload = function() {
-            setTimeout(typeLog, 500);
-        };
+        window.onload = runLogs;
+
     </script>
 </body>
 </html>
-            animation: blink 1s infinite;
-            vertical-align: middle;
-        }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
 
-        .hidden {
-            display: none;
-        }
-
-        h1 {
-            border-bottom: 1px dashed #0f0;
-            padding-bottom: 10px;
-            font-size: 1.2rem;
-        }
-
-        #countdown {
-            font-size: 1.5rem;
-            margin-top: 20px;
-            font-weight: bold;
-            text-shadow: 0 0 5px #0f0;
-        }
-
-        .log-text {
-            color: #0a0;
-            font-size: 0.9rem;
-            margin: 5px 0;
-        }
-        
-        .highlight {
-            color: #fff;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="terminal">
-        <h1>> CAPRICORN_PROTOCOL_V1.0</h1>
-        <div id="logs"></div>
-        <div id="main-content" class="hidden">
-            <p>> 目標對象：<span class="highlight">1/7 壽星</span></p>
-            <p>> 當前狀態：等待慶祝時刻...</p>
-            <div id="countdown">計算中...</div>
-        </div>
-        <p><span id="typing-area"></span><span class="cursor"></span></p>
-    </div>
-
-    <script>
-        // --- 設定區 ---
-        // 設定他的生日：2026年1月7日 00:00:00
-        const targetDate = new Date("2026-01-07T00:00:00").getTime();
-        
-        const logsContainer = document.getElementById('logs');
-        const typingArea = document.getElementById('typing-area');
-        const mainContent = document.getElementById('main-content');
-        const countdownElement = document.getElementById('countdown');
-
-        // 模擬開機載入的文字
-        const bootText = [
-            "正在連接伺服器...",
-            "驗證使用者身分... 通過",
-            "正在讀取星座資料庫 [CAPRICORN]...",
-            "分析目標特質: 聰明、冷靜、優秀...",
-            "偵測到重大時間節點: 2026/01/07",
-            "系統準備就緒。"
-        ];
-
-        let lineIndex = 0;
-
-        // 打字機效果函數
-        function typeLog() {
-            if (lineIndex < bootText.length) {
-                let p = document.createElement('p');
-                p.className = 'log-text';
-                p.textContent = "> " + bootText[lineIndex];
-                logsContainer.appendChild(p);
-                lineIndex++;
-                setTimeout(typeLog, 800); // 每行出現的速度
-            } else {
-                // 文字跑完，顯示倒數計時器
-                typingArea.style.display = 'none';
-                mainContent.classList.remove('hidden');
-                startCountdown();
-            }
-        }
-
-        // 開始倒數
-        function startCountdown() {
-            const timer = setInterval(function() {
-                const now = new Date().getTime();
-                const distance = targetDate - now;
-
-                if (distance < 0) {
-                    clearInterval(timer);
-                    showBirthdayMessage();
-                    return;
-                }
-
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                countdownElement.innerHTML = 
-                    `距離解鎖還有: <br><br>` +
-                    `${days}天 ${hours}時 ${minutes}分 ${seconds}秒`;
-            }, 1000);
-        }
-
-        // 時間到時顯示的畫面
-        function showBirthdayMessage() {
-            countdownElement.innerHTML = 
-                `<span style="color:white; font-size: 1.8rem;">🎉 ACCESS GRANTED 🎉</span><br><br>` +
-                `生日快樂！<br>` +
-                `祝你在新的一歲<br>程式無 Bug，考試全都會！`;
-            
-            // 簡單的慶祝特效文字
-            let p = document.createElement('p');
-            p.className = 'log-text';
-            p.textContent = "> 已發送虛擬蛋糕... 🎂";
-            logsContainer.appendChild(p);
-        }
-
-        // 啟動程式
-        window.onload = function() {
-            setTimeout(typeLog, 500);
-        };
-    </script>
-</body>
-</html>
