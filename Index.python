@@ -1,0 +1,54 @@
+import time
+from datetime import datetime
+import sys
+
+def typewriter_effect(text, speed=0.05):
+    """模擬打字機效果"""
+    for char in text:
+        sys.stdout.write(char)
+        sys.stdout.flush()
+        time.sleep(speed)
+    print()
+
+def birthday_countdown():
+    # 設定對方的生日 (年份設為 2026)
+    target_date = datetime(2026, 1, 7, 0, 0, 0)
+    
+    print("\n" + "="*40)
+    print("   SYSTEM ACCESS: CAPRICORN_PROTOCOL")
+    print("="*40 + "\n")
+    time.sleep(1)
+
+    typewriter_effect("正在分析目標對象資料...", 0.05)
+    time.sleep(0.5)
+    print(">> 星座：魔羯座 (Capricorn)")
+    time.sleep(0.5)
+    print(">> 特質：高冷、聰明、未來的菁英")
+    time.sleep(0.5)
+    typewriter_effect(">> 偵測到重大事件：BIRTHDAY", 0.1)
+    print("\n")
+
+    while True:
+        now = datetime.now()
+        remaining = target_date - now
+        
+        if remaining.total_seconds() <= 0:
+            print("\n" + "*"*50)
+            print("   🎉 TARGET REACHED: HAPPY BIRTHDAY! 🎉")
+            print("   祝你 1/7 生日快樂，新的一歲稱霸全場！")
+            print("*"*50)
+            break
+        
+        days = remaining.days
+        hours, remainder = divmod(remaining.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        # 顯示倒數計時，\r 讓它在同一行更新
+        countdown_text = f"距離慶祝時刻還剩： {days}天 {hours:02d}時 {minutes:02d}分 {seconds:02d}秒"
+        sys.stdout.write(f"\r{countdown_text}")
+        sys.stdout.flush()
+        time.sleep(1)
+
+if __name__ == "__main__":
+    # 執行程式
+    birthday_countdown()
