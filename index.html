@@ -88,6 +88,26 @@
             line-height: 1.2;
         }
 
+        /* --- 隱藏連結按鈕樣式 --- */
+        .secret-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: 1px solid var(--green);
+            color: var(--bg);
+            background-color: var(--green);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            animation: blink-bg 2s infinite;
+        }
+        
+        @keyframes blink-bg {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
         /* 手機上字體稍微縮小 */
         @media (max-width: 400px) {
             .timer-display { font-size: 1.4rem; }
@@ -128,11 +148,11 @@
     <script>
         // ====================================================
         // 👇👇👇 設定區 👇👇👇
-        // 已改回 1月7日
         
         const config = {
-            targetDate: "2026-01-07T00:00:00", 
-            userName: "使用者" 
+            targetDate: "2026-01-07T00:00:00",  // 目標日期
+            userName: "使用者",                 // 顯示名稱
+            redirectUrl: "https://bonny430.github.io/only-for-you/" // 驚喜連結
         };
         
         // ====================================================
@@ -142,7 +162,7 @@
         const countdownEl = document.getElementById('countdown');
         const targetDateDisplay = document.getElementById('target-date-display');
 
-        // 顯示目標日期在畫面上 (程式會自動抓取月份和日期)
+        // 顯示目標日期在畫面上
         const dateObj = new Date(config.targetDate);
         targetDateDisplay.textContent = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
 
@@ -166,11 +186,9 @@
                 div.innerHTML = `> ${logs[logIndex]}`;
                 logContainer.appendChild(div);
                 logIndex++;
-                // 自動捲動到底部
                 logContainer.scrollTop = logContainer.scrollHeight;
-                setTimeout(runLogs, 600); // 調整文字出現速度
+                setTimeout(runLogs, 600); 
             } else {
-                // 日誌跑完，顯示倒數
                 timerBox.style.display = 'block';
                 startCountdown();
             }
@@ -195,27 +213,27 @@
                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-                // 手機版分行顯示比較好看
                 countdownEl.innerHTML = 
                     `${d}天 ${h}時 <br>` +
                     `${m}分 ${s}秒`;
             }, 1000);
         }
 
-        // 3. 時間到之後的畫面
+        // 3. 時間到之後的畫面（這裡加上了連結）
         function showBirthdaySuccess() {
             countdownEl.innerHTML = 
                 `<span style="color:white;">🎉 ACCESS GRANTED 🎉</span><br>` +
-                `<span style="font-size:1rem; margin-top:10px; display:block;">生日快樂！<br>祝萬事順利，程式無 Bug！</span>`;
+                `<span style="font-size:1rem; margin-top:10px; display:block;">時間到！慶祝模式啟動！</span>` +
+                `<br>` +
+                `<a href="${config.redirectUrl}" class="secret-link">> [ 點擊進入專屬頁面 ] <</a>`;
             
-            // 追加一行日誌
             const div = document.createElement('div');
             div.className = 'log-line highlight';
-            div.textContent = "> 系統狀態: 慶祝模式已開啟 🎂";
+            div.textContent = "> 偵測到隱藏入口...路徑已建立。";
             logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // 啟動程式
         window.onload = runLogs;
 
     </script>
