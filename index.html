@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 手機適配關鍵 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Access: 0107</title>
     <style>
         /* --- 基礎設定 --- */
@@ -15,21 +15,19 @@
         body {
             background-color: var(--bg);
             color: var(--green);
-            font-family: 'Courier New', monospace; /* 駭客字體 */
+            font-family: 'Courier New', monospace;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
-            /* 螢幕掃描線效果 */
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
             background-size: 100% 4px;
         }
 
-        /* --- 終端機視窗 --- */
         #terminal {
-            width: 90%; /* 手機寬度適配 */
+            width: 90%;
             max-width: 600px;
             background: rgba(0, 10, 0, 0.9);
             border: 1px solid var(--green);
@@ -39,7 +37,6 @@
             position: relative;
         }
 
-        /* --- 頂部狀態列 --- */
         .status-bar {
             border-bottom: 1px dashed var(--green);
             padding-bottom: 10px;
@@ -50,10 +47,9 @@
             opacity: 0.8;
         }
 
-        /* --- 日誌區域 --- */
         #console-log {
             font-size: 0.9rem;
-            height: 120px; /* 固定高度防止跳動 */
+            height: 120px;
             overflow: hidden;
             margin-bottom: 20px;
             display: flex;
@@ -63,12 +59,11 @@
 
         .log-line {
             margin: 3px 0;
-            word-wrap: break-word; /* 防止手機上文字太長撐開 */
+            word-wrap: break-word;
         }
 
-        /* --- 倒數計時區 --- */
         #timer-box {
-            display: none; /* 一開始隱藏 */
+            display: none;
             border: 1px solid var(--green);
             padding: 20px;
             text-align: center;
@@ -91,8 +86,8 @@
         /* --- 隱藏連結按鈕樣式 --- */
         .secret-link {
             display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
+            margin-top: 25px;
+            padding: 12px 25px;
             border: 1px solid var(--green);
             color: var(--bg);
             background-color: var(--green);
@@ -100,6 +95,7 @@
             font-weight: bold;
             font-size: 1rem;
             animation: blink-bg 2s infinite;
+            border-radius: 3px;
         }
         
         @keyframes blink-bg {
@@ -108,13 +104,11 @@
             100% { opacity: 1; }
         }
 
-        /* 手機上字體稍微縮小 */
         @media (max-width: 400px) {
             .timer-display { font-size: 1.4rem; }
             #terminal { padding: 15px; width: 95%; }
         }
 
-        /* --- 游標動畫 --- */
         .cursor {
             display: inline-block;
             width: 8px;
@@ -147,12 +141,12 @@
 
     <script>
         // ====================================================
-        // 👇👇👇 設定區 👇👇👇
+        // 👇👇👇 設定區 (已設為 1/7) 👇👇👇
         
         const config = {
-            targetDate: "2026-01-07T00:00:00",  // 目標日期
-            userName: "使用者",                 // 顯示名稱
-            redirectUrl: "https://bonny430.github.io/only-for-you/" // 驚喜連結
+            targetDate: "2026-01-07T00:00:00", 
+            userName: "使用者",
+            redirectUrl: "https://bonny430.github.io/only-for-you/"
         };
         
         // ====================================================
@@ -162,23 +156,20 @@
         const countdownEl = document.getElementById('countdown');
         const targetDateDisplay = document.getElementById('target-date-display');
 
-        // 顯示目標日期在畫面上
         const dateObj = new Date(config.targetDate);
         targetDateDisplay.textContent = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
 
-        // 開機日誌文字
         const logs = [
             "正在初始化系統...",
             `識別身分: [${config.userName}]`,
             "權限確認: 已授權 (Authorized)",
             "正在掃描時間軸...",
-            "鎖定關鍵事件: 生日慶典",
+            "鎖定關鍵事件: 特別日",
             "啟動倒數計時模組..."
         ];
 
         let logIndex = 0;
 
-        // 1. 執行開機動畫
         function runLogs() {
             if (logIndex < logs.length) {
                 const div = document.createElement('div');
@@ -194,7 +185,6 @@
             }
         }
 
-        // 2. 倒數計時邏輯
         function startCountdown() {
             const targetTime = new Date(config.targetDate).getTime();
 
@@ -219,12 +209,12 @@
             }, 1000);
         }
 
-        // 3. 時間到之後的畫面（這裡加上了連結）
+        // 修改後的慶祝畫面
         function showBirthdaySuccess() {
             countdownEl.innerHTML = 
-                `<span style="color:white;">🎉 ACCESS GRANTED 🎉</span><br>` +
-                `<span style="font-size:1rem; margin-top:10px; display:block;">時間到！慶祝模式啟動！</span>` +
-                `<br>` +
+                `<span style="color:white; display:block; margin-bottom:5px;">🎉 ACCESS GRANTED 🎉</span>` +
+                // 這裡改成了大大的 Happy Birthday
+                `<span style="font-size:1.5rem; display:block; color: white; text-shadow: 0 0 15px white; margin: 15px 0;">Happy Birthday 🎂</span>` +
                 `<a href="${config.redirectUrl}" class="secret-link">> [ 點擊進入專屬頁面 ] <</a>`;
             
             const div = document.createElement('div');
